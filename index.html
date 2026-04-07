@@ -243,6 +243,7 @@ let spinSpeed = 0.005;
 let targetSpeed = 0;
 let names = [];
 let colors = [];
+let winningIndex = null;
 
 const colorsDefault = [
   '#FFEB3B', // gelb
@@ -302,16 +303,71 @@ const anglePerSegment = (2 * Math.PI) / numFields;
     const startAngle = i * anglePerSegment;
     const endAngle = startAngle + anglePerSegment;
 
-    // Segment
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY);
-    ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-    ctx.closePath();
-    ctx.fillStyle = colors[i % colors.length];
-    ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+ctx.save();
+
+const isWinner = (i === winningIndex);
+
+// Mittelpunkt-Winkel
+const midAngle = startAngle + anglePerSegment / 2;
+
+// 🔥 Gewinner leicht nach außen schieben
+if (isWinner) {
+  const offset = 12;
+  const dx = Math.cos(midAngle) * offset;
+  const dy = Math.sin(midAngle) * offset;
+  ctx.translate(dx, dy);
+}
+
+// 🔥 größerer Radius für Gewinner
+const drawRadius = isWinner ? radius + 20 : radius;
+
+// Segment zeichnen
+ctx.beginPath();
+ctx.moveTo(centerX, centerY);
+ctx.arc(centerX, centerY, drawRadius, startAngle, endAngle);
+ctx.closePath();
+
+// Farbe
+ctx.fillStyle = colors[i % colors.length];
+ctx.fill();
+
+if (isWinner) {
+
+  // Glow
+  ctx.shadowColor = 'rgba(255, 215, 0, 0.9)';
+  ctx.shadowBlur = 25;
+
+  const w = 3; // 🔥 Grunddicke (wie dein bisheriger Rand)
+
+  // 🔴 äußerer Rand (rot)
+  ctx.lineWidth = w * 3;
+  ctx.strokeStyle = '#ff0000';
+  ctx.stroke();
+
+  // 🟡 mittlerer Rand (gelb)
+  ctx.lineWidth = w * 2;
+  ctx.strokeStyle = '#FFD700';
+  ctx.stroke();
+
+  // ⚫ innerer Rand (schwarz)
+  ctx.lineWidth = w;
+  ctx.strokeStyle = '#000';
+  ctx.stroke();
+
+} else {
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+
+
+ctx.restore();
+
+
+
+
 
     // Text mittig
     ctx.save();
@@ -373,15 +429,18 @@ function animate() {
 
   if(spinning) {
     spinSpeed += (targetSpeed - spinSpeed) * 0.02;
-    if(Math.abs(spinSpeed) < 0.002 && targetSpeed === 0) {
-      spinning = false;
-      spinSpeed = 0.005;
-      rotation = rotation % (2*Math.PI);
 
-      // Gewinner: Segment unter der Markierung (oben bei 12 Uhr)
-      const numFields = names.length;
-const winningIndex = getWinningIndex();      alert(`Gewonnen: ${names[winningIndex]}`);
-    }
+if(Math.abs(spinSpeed) < 0.002 && targetSpeed === 0) {
+  spinning = false;
+  spinSpeed = 0;
+  rotation = rotation % (2*Math.PI);
+
+  winningIndex = getWinningIndex(); // 🔥 nur speichern, kein alert mehr
+}
+
+
+
+
   }
 
   requestAnimationFrame(animate);
@@ -389,6 +448,7 @@ const winningIndex = getWinningIndex();      alert(`Gewonnen: ${names[winningInd
 
 function spinWheel() {
   if (spinning || names.length === 0) return;
+winningIndex = null;
   spinning = true;
   targetSpeed = Math.random() * 0.3 + 0.3;
   setTimeout(() => { targetSpeed = 0; }, 1500);
