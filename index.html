@@ -122,6 +122,80 @@ button {
   font-size: 48px;
   font-weight: bold;
 }
+
+/* 📱 MOBILE OPTIMIERUNG */
+@media (max-width: 768px) {
+
+  body {
+    padding: 10px;
+  }
+
+  /* Logo kleiner */
+  #logo {
+    width: 150px;
+    top: 5px;
+    left: 5px;
+  }
+
+  /* Titel kleiner & sauber positioniert */
+  #title {
+    font-size: 28px;
+    top: 80px;
+    text-align: center;
+    width: 100%;
+  }
+
+  /* Rad etwas kleiner */
+  canvas {
+    width: 90vw;
+    height: 90vw;
+    max-width: 350px;
+    max-height: 350px;
+  }
+
+  /* Pfeil anpassen */
+  .pointer {
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 30px solid red;
+    top: -10px;
+  }
+
+  /* 👉 Steuerung unter das Rad statt rechts */
+  #rightSide {
+    position: static;
+    transform: none;
+    width: 100%;
+    margin-top: 20px;
+  }
+
+  textarea {
+    width: 100%;
+    height: 120px;
+  }
+
+  .button-row {
+    justify-content: center;
+    width: 100%;
+  }
+
+  button {
+    width: 100%;
+    font-size: 16px;
+  }
+
+  /* Footer kleiner */
+  #footer {
+    font-size: 12px;
+    bottom: 5px;
+  }
+}
+
+
+
+
+
+
 </style>
 </head>
 <body>
