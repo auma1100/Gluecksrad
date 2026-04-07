@@ -34,17 +34,51 @@ canvas {
   width: 0;
   height: 0;
 
+  border-left: 24px solid transparent;
+  border-right: 24px solid transparent;
+  border-top: 48px solid black; /* 🔥 schwarzer Rand */
+
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9;
+}
+
+/* 🔴 innerer roter Pfeil */
+.pointer {
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9;
+
+  width: 0;
+  height: 0;
+
+  /* 🔥 Außen (Rand) */
+  border-left: 24px solid transparent;
+  border-right: 24px solid transparent;
+  border-top: 48px solid black;
+}
+
+
+
+/* 🔴 Innen (perfekt zentriert) */
+.pointer::after {
+  content: "";
+  position: absolute;
+
+  /* 🔥 WICHTIG: exakt mittig */
+  top: -46px;
+  left: -20px;
+
+  width: 0;
+  height: 0;
+
   border-left: 20px solid transparent;
   border-right: 20px solid transparent;
   border-top: 40px solid red;
-
-  position: absolute;
-  top: -5px; /* 🔥 ggf. anpassen */
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-
-  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));
 }
 
 .button-row {
@@ -337,7 +371,7 @@ if (isWinner) {
   ctx.shadowColor = 'rgba(255, 215, 0, 0.9)';
   ctx.shadowBlur = 25;
 
-  const w = 3; // 🔥 Grunddicke (wie dein bisheriger Rand)
+  const w = 5; // 🔥 Grunddicke (wie dein bisheriger Rand)
 
   // 🔴 äußerer Rand (rot)
   ctx.lineWidth = w * 3;
@@ -447,12 +481,27 @@ if(Math.abs(spinSpeed) < 0.002 && targetSpeed === 0) {
 }
 
 function spinWheel() {
-  if (spinning || names.length === 0) return;
-winningIndex = null;
+  if (names.length === 0) return;
+
+  // 🔥 auch während Drehung neu starten möglich
   spinning = true;
+  winningIndex = null;
+
+  // kleine Bremse, falls schon am Drehen
+  if (spinSpeed > 0.05) {
+    spinSpeed *= 0.5;
+  }
+
+  // neue Beschleunigung
+  spinSpeed = 0.005;
   targetSpeed = Math.random() * 0.3 + 0.3;
-  setTimeout(() => { targetSpeed = 0; }, 1500);
+
+  setTimeout(() => {
+    targetSpeed = 0;
+  }, 1500);
 }
+
+
 
 // Initial
 initWheel();animate();
