@@ -319,6 +319,18 @@ function initWheel() {
   drawWheel();
 }
 
+function truncateText(ctx, text, maxWidth) {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+
+  let truncated = text;
+  while (truncated.length > 0) {
+    truncated = truncated.slice(0, -1);
+    if (ctx.measureText(truncated + '...').width <= maxWidth) {
+      return truncated + '...';
+    }
+  }
+  return '...';
+}
 
 function drawWheel() {
   const rawNames = document.getElementById('nameList').value.split('\n').map(n => n.trim()).filter(n => n);
@@ -404,39 +416,71 @@ ctx.restore();
 
 
     // Text mittig
-    ctx.save();
-    ctx.translate(centerX, centerY);
-    const angleMiddle = startAngle + anglePerSegment / 2;
-    ctx.rotate(angleMiddle);
-    ctx.fillStyle = '#000';
-    ctx.font = 'bold 14px sans-serif';
-    ctx.textAlign = 'center';
+ctx.save();
+ctx.translate(centerX, centerY);
+const angleMiddle = startAngle + anglePerSegment / 2;
+ctx.rotate(angleMiddle);
+ctx.fillStyle = '#000';
+ctx.textAlign = 'center';
 
-    const words = names[i].split(' ');
-    const maxLength = 12;
-    let lines = [];
-    let currentLine = '';
-    for (let w of words) {
-      if ((currentLine + ' ' + w).trim().length > maxLength) {
-        lines.push(currentLine);
-        currentLine = w;
+  function wrapText(ctx, text, maxWidth) {
+  const paragraphs = text.split('\n'); // 🔥 erlaubt manuelle Zeilenumbrüche
+  let lines = [];
+
+  paragraphs.forEach(paragraph => {
+    const words = paragraph.split(' ');
+    let line = '';
+
+    words.forEach(word => {
+      const testLine = line + word + ' ';
+      const metrics = ctx.measureText(testLine);
+
+      if (metrics.width > maxWidth && line !== '') {
+        lines.push(line.trim());
+        line = word + ' ';
       } else {
-        currentLine += (currentLine ? ' ' : '') + w;
+        line = testLine;
       }
-    }
-    if(currentLine) lines.push(currentLine);
-
-    const lineHeight = 16;
-    const textRadius = radius - 40;
-    const startY = -((lines.length-1) * lineHeight)/2;
-
-    lines.forEach((line, idx) => {
-      ctx.save();
-      ctx.translate(textRadius, startY + idx * lineHeight);
-      ctx.rotate(Math.PI/2);
-      ctx.fillText(line, 0, 0);
-      ctx.restore();
     });
+
+    if (line) lines.push(line.trim());
+  });
+
+  return lines;
+}
+
+const textRadius = radius - 40;
+const maxTextWidth = radius * 0.35;
+const lineHeight = 14;
+
+// 🔥 WICHTIG: Font vorher setzen (für korrektes measureText)
+ctx.font = "16px sans-serif";
+
+let lines = wrapText(ctx, names[i], maxTextWidth);
+// 🔥 jede Zeile zusätzlich kürzen (falls ein Wort zu lang ist)
+lines = lines.map(line => truncateText(ctx, line, maxTextWidth));
+
+// 🔥 MAX ZEILEN begrenzen (z.B. 3)
+const maxLines = 3;
+
+if (lines.length > maxLines) {
+  lines = lines.slice(0, maxLines);
+
+  // 🔥 letzte Zeile kürzen + ...
+  lines[maxLines - 1] = truncateText(ctx, lines[maxLines - 1], maxTextWidth);
+}
+ctx.font = `${Math.max(10, 16 - lines.length)}px sans-serif`;
+
+// 🔥 vertikal zentrieren
+const startY = -((lines.length - 1) * lineHeight) / 2;
+
+lines.forEach((line, idx) => {
+  ctx.save();
+  ctx.translate(textRadius, startY + idx * lineHeight);
+  ctx.rotate(Math.PI / 2);
+  ctx.fillText(line, 0, 0);
+  ctx.restore();
+});
 
     ctx.restore();
   }
